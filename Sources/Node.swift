@@ -143,6 +143,23 @@ open class XMLNode {
     return dumped
   }()
   
+  /// The raw XML string of the element without format.
+  open fileprivate(set) lazy var rawXMLDump: String = {
+    var buffer = xmlBufferCreate()
+    if self.isHTML {
+      let outputBufferPtr = xmlOutputBufferCreateBuffer(buffer, nil)
+      defer {
+        xmlOutputBufferClose(outputBufferPtr)
+      }
+      htmlNodeDumpFormatOutput(outputBufferPtr, self.cNode.pointee.doc, self.cNode, nil, 0)
+    } else {
+      xmlNodeDump(buffer, self.cNode.pointee.doc, self.cNode, 0, 0)
+    }
+    let dumped = ^-^xmlBufferContent(buffer) ?? ""
+    xmlBufferFree(buffer)
+    return dumped
+  }()
+  
  /// Convert this node to XMLElement if it is an element node
   open func toElement() -> XMLElement? {
     return self as? XMLElement
